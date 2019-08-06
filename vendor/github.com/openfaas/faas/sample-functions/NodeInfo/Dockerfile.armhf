@@ -1,0 +1,11 @@
+FROM functions/alpine:latest
+
+RUN apk --update add nodejs nodejs-npm
+
+COPY package.json .
+COPY main.js .
+
+RUN npm i
+
+ENV fprocess="node main.js"
+CMD ["fwatchdog"]

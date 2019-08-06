@@ -1,0 +1,32 @@
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 5s
+  group_interval: 10s
+  repeat_interval: 30s
+  receiver: scale-up
+  routes:
+    - receiver: scale-up
+      match:
+        service: gateway
+        severity: major
+        action: scale-up
+    - receiver: scale-down
+      match:
+        service: gateway
+        severity: major
+        action: scale-down
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  equal: ['alertname', 'cluster', 'service']
+receivers:
+- name: 'scale-up'
+  webhook_configs:
+    - url: http://autoscaler:8081/system/scale-up
+      send_resolved: true
+- name: 'scale-down'
+  webhook_configs:
+    - url: http://autoscaler:8081/system/scale-down
+      send_resolved: true

@@ -1,0 +1,33 @@
+ignored = ["github.com/openfaas/faas/gateway/queue"]
+
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "1.6.2"
+
+[[constraint]]
+  name = "github.com/nats-io/go-nats-streaming"
+  version = "0.4.0"
+
+[[override]]
+  name = "github.com/nats-io/go-nats"
+  version = "v1.5.0"
+
+[[constraint]]
+  name = "github.com/openfaas/nats-queue-worker"
+  version = "0.7.0"
+
+[[constraint]]
+  name = "github.com/prometheus/client_golang"
+  version = "v0.9.2"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"
+
+[[constraint]]
+  name = "github.com/openfaas/faas-provider"
+  version = "0.9.1"
+
+[[constraint]]
+  name = "go.uber.org/goleak"
+  version = "0.10.0"
