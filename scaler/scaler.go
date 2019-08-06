@@ -22,7 +22,6 @@ func NewAutoScaler(funcProviderURL url.URL, injector handlers.AuthInjector) Auto
 
 func (s *scaler) ScaleUp(alert types.PrometheusInnerAlert) error {
 	if alert.Status != "firing" {
-		log.Printf("alert: %+v resolved", alert)
 		return nil
 	}
 	functionName := alert.Labels.FunctionName
@@ -44,7 +43,6 @@ func (s *scaler) ScaleUp(alert types.PrometheusInnerAlert) error {
 
 func (s *scaler) ScaleDown(alert types.PrometheusInnerAlert) error {
 	if alert.Status != "firing" {
-		log.Printf("alert: %+v resolved", alert)
 		return nil
 	}
 	functionName := alert.Labels.FunctionName
