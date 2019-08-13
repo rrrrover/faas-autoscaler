@@ -82,4 +82,5 @@ We can see qps increased first, then after scaling up, qps dropped quickly
 We can tell replicas decreased as qps dropped from 60 to 10
 ![](./docs/replicas.png)
 
+##autoscale
 
