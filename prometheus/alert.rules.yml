@@ -3,23 +3,35 @@ groups:
     rules:
       - alert: service_down
         expr: up == 0
-      - alert: APIHighInvocationRate
-        expr: sum by(function_name) (rate(gateway_function_invocation_total{code="200"}[10s]) / ignoring(code) gateway_service_count) > 5
+      #      - alert: APIHighInvocationRate
+      #        expr: sum by(function_name) (rate(gateway_function_invocation_total{code="200"}[10s]) / ignoring(code) gateway_service_count) > 5
+      #        for: 5s
+      #        labels:
+      #          service: gateway
+      #          severity: major
+      #          action: scale-up
+      #        annotations:
+      #          description: High invocation total on {{ $labels.function_name }}
+      #          summary: High invocation total on {{ $labels.function_name }}
+      #      - alert: APILowInvocationRate
+      #        expr: sum by(function_name) (rate(gateway_function_invocation_total{code="200"}[10s]) / ignoring(code) gateway_service_count) < 1
+      #        for: 5s
+      #        labels:
+      #          service: gateway
+      #          severity: major
+      #          action: scale-down
+      #        annotations:
+      #          description: Low invocation total on {{ $labels.function_name }}
+      #          summary: Low invocation total on {{ $labels.function_name }}
+      - alert: APIInvoke
+        expr: sum by(function_name) (rate(gateway_function_invocation_total[10s]) / ignoring(code) gateway_service_count) > 0
         for: 5s
         labels:
           service: gateway
           severity: major
-          action: scale-up
+          action: auto-scale
+          target: 2
+          value: "{{ $value }}"
         annotations:
-          description: High invocation total on {{ $labels.function_name }}
-          summary: High invocation total on {{ $labels.function_name }}
-      - alert: APILowInvocationRate
-        expr: sum by(function_name) (rate(gateway_function_invocation_total{code="200"}[10s]) / ignoring(code) gateway_service_count) < 1
-        for: 5s
-        labels:
-          service: gateway
-          severity: major
-          action: scale-down
-        annotations:
-          description: Low invocation total on {{ $labels.function_name }}
-          summary: Low invocation total on {{ $labels.function_name }}
+          description: Function invoke on {{ $labels.function_name }}
+          summary: Function invoke on {{ $labels.function_name }}

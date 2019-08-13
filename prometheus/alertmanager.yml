@@ -15,6 +15,11 @@ route:
         service: gateway
         severity: major
         action: scale-down
+    - receiver: auto-scale
+      match:
+        service: gateway
+        severity: major
+        action: auto-scale
 inhibit_rules:
 - source_match:
     severity: 'critical'
@@ -30,3 +35,6 @@ receivers:
   webhook_configs:
     - url: http://autoscaler:8081/system/scale-down
       send_resolved: true
+- name: 'auto-scale'
+  webhook_configs:
+    - url: http://autoscaler:8081/system/auto-scale

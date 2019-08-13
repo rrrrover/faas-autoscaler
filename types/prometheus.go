@@ -5,6 +5,7 @@ type PrometheusInnerAlertLabel struct {
 	AlertName    string `json:"alertname"`
 	FunctionName string `json:"function_name"`
 	Value        string `json:"value"`
+	Target       string `json:"target"`
 }
 
 // PrometheusInnerAlert PrometheusInnerAlert

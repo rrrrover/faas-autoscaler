@@ -55,10 +55,12 @@ func main() {
 	handlerSet := new(types.AutoScaleHandlerSet)
 	handlerSet.ScaleUpHandlerFunc = handlers.NewScaleUpHandlerFunc(scaler)
 	handlerSet.ScaleDownHandlerFunc = handlers.NewScaleDownHandlerFunc(scaler)
+	handlerSet.AutoScaleHandlerFunc = handlers.NewAutoScaleHandlerFunc(scaler)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/system/scale-up", handlerSet.ScaleUpHandlerFunc).Methods(http.MethodPost)
 	r.HandleFunc("/system/scale-down", handlerSet.ScaleDownHandlerFunc).Methods(http.MethodPost)
+	r.HandleFunc("/system/auto-scale", handlerSet.AutoScaleHandlerFunc).Methods(http.MethodPost)
 
 	port := 8081
 	readTimeout := 10 * time.Second

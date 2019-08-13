@@ -7,4 +7,5 @@ import (
 type AutoScaleHandlerSet struct {
 	ScaleUpHandlerFunc   http.HandlerFunc
 	ScaleDownHandlerFunc http.HandlerFunc
+	AutoScaleHandlerFunc http.HandlerFunc
 }

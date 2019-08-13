@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	docker build . faas-autoscaler:latest
+	docker build . -t faas-autoscaler:latest
 
 .PHONY: deploy
 deploy:
