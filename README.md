@@ -2,85 +2,82 @@
 
 OpenFaaS&reg; is a well known FaaS framework with great features.
 However as discussed in issue [#1271](https://github.com/openfaas/faas/issues/1271), the default scaling policy may have
-some problems. So we created this project to provide another controller for autoscaling feature.
+some problems. Inspired by kubernetes HPAv2 (horizontal-pod-autoscale), we created this project to bring autoscaling for openfaas in docker swarm.
 
-## How it works
-OpenFaaS&reg; uses promethues to monitor function work load, alertmanager will send alert to gateway to scale up function
-when work load is high. See [of-overview.png:](https://github.com/openfaas/faas/blob/master/docs/of-overview.png)
-![](./docs/of-overview.png)  
-
-faas-autoscaler has two endpoints `/system/scale-up` and `/system/scale-down`, we need prometheus to monitor the function work load,
-when load is high, alertmanager calls `/system/scale-up` to create more replicas, and when load is low, calls `/system/scale-down`.
-
-Each time `scale-up` or `scale-down` is called, function replicas will increase/decrease by a `deltaReplica`, until replica exceeds `[minReplica, maxReplica]`, the calculation is :
-```$xslt
-deltaReplica = maxReplica * scaleFactor
+##How it works
+HPA will query resource utilization against metrics defined in HPA definition periodically. 
+In each period, HPA obtains metrics and calculate the desired pod replica number, then HPA will update the deployment replicas according to the calculation.
+```text
+desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]
+``` 
+We implemented faas-autoscaler similarly. We use prometheus to tell us current metrics periodically, by setting up this alert rule:
+```yaml
+- alert: APIInvoke
+  expr: rate(gateway_function_invocation_total[10s]) / ignoring(code) gateway_service_count >= 0
+  for: 5s
+  labels:
+    service: gateway
+    severity: major
+    action: auto-scale
+    target: 2
+    value: "{{ $value }}"
+  annotations:
+    description: Function invoke on {{ $labels.function_name }}
+    summary: Function invoke on {{ $labels.function_name }}
 ```
-
-In this project we use the following rules:
-
-```$xslt
-alert: APIHighInvocationRate
-expr: sum by(function_name) (rate(gateway_function_invocation_total{code="200"}[10s]) / ignoring(code) gateway_service_count) > 5
-for: 5s
-labels:
-  service: gateway
-  severity: major
-  action: scale-up
-annotations:
-  description: High invocation total on {{ $labels.function_name }}
-  summary: High invocation total on {{ $labels.function_name }}
+When functions are called, alertmanager will send alert to faas-autoscaler's `/system/auto-scale` endpoint.
+faas-autoscaler will take label `target` as desired metric, and `value` as current metric, desired replicas are calculated by:
+```text
+desiredReplicas = ceil[currentReplicas * ( value / target )]
 ```
-```$xslt
-alert: APILowInvocationRate
-expr: sum by(function_name) (rate(gateway_function_invocation_total{code="200"}[10s]) / ignoring(code) gateway_service_count) < 1
-for: 5s
-labels:
-  service: gateway
-  severity: major
-  action: scale-down
-annotations:
-  description: Low invocation total on {{ $labels.function_name }}
-  summary: Low invocation total on {{ $labels.function_name }}
-```
+The above prometheus rule will only scale functions by RPS (request-per-second), each function replica will only handle approximately 2 requests in concurrent.
+But because faas-autoscaler only cares about `target` and `value` label, so you can easily change the alert rule to make it scale by cpu/mem usage etc.
 
-It means when QPS for each replica is higher than 5, we scale up; and when  QPS is lower than 1, we scale down
+## Demo
+In this demo we will show you how replicas are changed when RPS is changed.
+We will invoke function with RPS=7, and we will see the replicas are changed to 4, because `target` is set to 2.
+Then we will increase RPS to 15, and replicas will increase to 8.
+Finally we will stop calling the function, and replicas will drop to 1. 
+For this purpose we need to deploy a whole new openfaas stack in your local for this demo, please make sure your port 8080 and 9090 is not used.
 
-## Deploy
-First we need to first build faas-autoscaler image
-```$xslt
+### Build docker image
+In this step we first prepare faas-autoscaler image
+```bash
 make build
 ```
 
-then we need to deploy full faas stack
-```$xslt
-make dploy
+### Deploy stack
+We deploy the openfaas stack and faas-autoscaler, we also changed the admin password to `admin` so we can later use openfaas-ui easily.
+```bash
+make deploy
 ```
 
-## Test Drive
-open `http://127.0.0.1:8080` in your browser, login gateway with user `admin` and password `admin`
-
-deploy function `figlet` or other if you like.
-
-call your function with an automation tool like [hey](https://github.com/rakyll/hey)
-
-```$xslt
-hey -q 60 -c 1 -disable-keepalive -m POST -d a -z 2m http://127.0.0.1:8080/function/figlet
+### Deploy a function
+In fact any function will do in this demo, but we pick `figlet` in this demo.
+Open http://127.0.0.1:8080 in your browser and click `Deploy New Function` button.
+![](./docs/function-pick.png)
+Find `figlet` and click `deploy` then you can wait till it's ready
+![](./docs/function-ready.png)
+you can check your environment by
+```bash
+docker service ls
 ```
-this command calls figlet function with QPS = 60, `APIHighInvocationRate` fires, then we will find replicas becomes 13 
-(initial replica is 1, deltaReplica is 4 = 20*20%, scale up 3 times)
+![](./docs/env-check.png)
+### Invoke your function
+We need an automation tool for function invoke. In this demo we choose [hey](https://github.com/rakyll/hey).
 
-## Demo
-In this demo, we use default faas-autoscaler prometheus rules
-![](./docs/prom-rules.png)
+First we invoke figlet with RPS=7
+```bash
+hey -q 7 -c 1 -disable-keepalive -m POST -d a -z 10m http://127.0.0.1:8080/function/figlet
+```
+then figlet replicas becomes 4
+![](./docs/replica-4.png)
 
-We first call figlet function with QPS = 60, then decrease to 10, and finally 0.
+Then you can increase the RPS
+```bash
+hey -q 15 -c 1 -disable-keepalive -m POST -d a -z 10m http://127.0.0.1:8080/function/figlet
+```
+and now replicas becomes 8
+![](docs/replica-8.png)
 
-We can see qps increased first, then after scaling up, qps dropped quickly
-![](./docs/qps.png)
-
-We can tell replicas decreased as qps dropped from 60 to 10
-![](./docs/replicas.png)
-
-##autoscale
-
+Finally we stop the test, and we will see figlet scaled to 1

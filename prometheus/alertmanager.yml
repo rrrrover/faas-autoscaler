@@ -38,3 +38,4 @@ receivers:
 - name: 'auto-scale'
   webhook_configs:
     - url: http://autoscaler:8081/system/auto-scale
+      send_resolved: false

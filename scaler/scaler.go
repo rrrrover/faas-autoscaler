@@ -66,9 +66,7 @@ func (s *scaler) ScaleDown(alert types.PrometheusInnerAlert) error {
 }
 
 func (s *scaler) AutoScale(alert types.PrometheusInnerAlert) error {
-	if alert.Status != "firing" {
-		return nil
-	}
+	log.Printf("%+v", alert)
 	functionName := alert.Labels.FunctionName
 	service := plugin.NewExternalServiceQuery(s.FunctionsProviderURL, s.authInjector)
 	queryResponse, getErr := service.GetReplicas(functionName)

@@ -24,7 +24,7 @@ groups:
       #          description: Low invocation total on {{ $labels.function_name }}
       #          summary: Low invocation total on {{ $labels.function_name }}
       - alert: APIInvoke
-        expr: sum by(function_name) (rate(gateway_function_invocation_total[10s]) / ignoring(code) gateway_service_count) > 0
+        expr: rate(gateway_function_invocation_total[10s]) / ignoring(code) gateway_service_count >= 0
         for: 5s
         labels:
           service: gateway
