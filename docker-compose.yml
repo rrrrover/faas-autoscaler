@@ -154,6 +154,7 @@ services:
         image: faas-autoscaler:latest
         environment:
             functions_provider_url: "http://faas-swarm:8080/"
+            secret_mount_path: "/run/secrets/"
         networks:
             - functions
         secrets:
