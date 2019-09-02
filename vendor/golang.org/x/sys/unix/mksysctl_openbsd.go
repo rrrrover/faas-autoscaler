@@ -10,7 +10,7 @@
 // a hash that will contain additional entries if the current entry is a node.
 // We then walk this MIB and create a flattened sysctl name to OID hash.
 
-package unix
+package main
 
 import (
 	"bufio"

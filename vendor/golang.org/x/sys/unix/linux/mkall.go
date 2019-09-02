@@ -12,7 +12,7 @@
 
 // +build ignore
 
-package linux
+package main
 
 import (
 	"bufio"

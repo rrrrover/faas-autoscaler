@@ -12,7 +12,7 @@
 // write to event log. It also shows how to use debug
 // facilities available in debug package.
 //
-package example
+package main
 
 import (
 	"fmt"

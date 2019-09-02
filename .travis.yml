@@ -1,8 +1,0 @@
-launguage: go
-
-os: linux
-
-go:
-  - 1.x
-
-script: go build server.go

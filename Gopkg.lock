@@ -39,7 +39,7 @@
 
 [[projects]]
   name = "github.com/openfaas/faas-provider"
-  packages = [".","auth","types"]
+  packages = ["auth"]
   revision = "a04c03d034b4058880de6b6c0606ec02a94ef025"
   version = "0.9.3"
 
@@ -76,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6e7d90a38d2a9beb79593bf3fdddd27bc099ec47df494ce7a58f85ec5513b87d"
+  inputs-digest = "ffe2f1bffa3566599249f9608aa039ed8383b2ee64c5f8c8dd59ce636b12384a"
   solver-name = "gps-cdcl"
   solver-version = 1

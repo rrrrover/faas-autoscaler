@@ -11,7 +11,7 @@ Input to cgo -godefs.  See README.md
 // +godefs map struct_in_addr [4]byte /* in_addr */
 // +godefs map struct_in6_addr [16]byte /* in6_addr */
 
-package linux
+package unix
 
 /*
 #define _LARGEFILE_SOURCE
